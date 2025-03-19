@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import html2canvas from "html2canvas";
 
@@ -11,6 +11,8 @@ function EditPhoto() {
 
   const [caption, setCaption] = useState("Tules yak sini!");
   const [fontSize, setFontSize] = useState(20);
+  const [fontFamily, setFontFamily] = useState("Arial");
+  const [fontColor, setFontColor] = useState("#000000");
   const [isSaved, setIsSaved] = useState(false);
 
   if (!photos || !selectedLayout) {
@@ -23,11 +25,14 @@ function EditPhoto() {
   }
 
   const layoutStyles = {
-    "4-STRIP": "grid grid-rows-4 w-40 h-96 bg-white p-4 border border-gray-400",
-    "3-STRIP": "grid grid-rows-3 w-40 h-72 bg-white p-4 border border-gray-400",
-    "SQUARE": "w-48 h-56 bg-white p-4 border border-gray-400 flex flex-col items-center",
-    "WIDE": "w-72 h-56 bg-white p-4 border border-gray-400 flex flex-col items-center",
-    "2R": "w-48 h-64 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "4-strip": "grid grid-rows-4 w-40 h-96 bg-white p-4 border border-gray-400",
+    "3-strip": "grid grid-rows-3 w-40 h-72 bg-white p-4 border border-gray-400",
+    "3-strip-landscape": "grid grid-cols-3 w-72 h-40 bg-white p-4 border border-gray-400",
+    "square": "w-48 h-48 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "wide": "w-72 h-56 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "mini": "w-32 h-40 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "2r": "w-48 h-64 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "7x10": "w-56 h-80 bg-white p-4 border border-gray-400 flex flex-col items-center",
   };
 
   const savePhoto = async () => {
@@ -39,30 +44,12 @@ function EditPhoto() {
     setIsSaved(true);
   };
 
-  const sharePhoto = async () => {
-    const canvas = await html2canvas(canvasRef.current, { useCORS: true, scale: 2 });
-    const imageUrl = canvas.toDataURL("image/png");
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Lihat foto keren aku!",
-          text: "Cek hasil jepretan aku dari Photobooth!",
-          url: imageUrl,
-        });
-      } catch (error) {
-        alert("Gagal membagikan foto! Coba simpan dulu lalu kirim manual.");
-      }
-    } else {
-      alert("Browser ini gak support share langsung, simpan dulu ya!");
-    }
-  };
-
   return (
     <div className="text-center p-6">
-      <h1 className="text-2xl font-semibold"></h1>
+      <h1 className="text-2xl font-semibold">Edit Foto</h1>
       <p className="text-gray-600 mt-2">Kasik tulesan kalau nda pun nda pape! Maok ati yaklaa~</p>
 
+      {/* Frame Foto */}
       <div className="flex flex-col items-center mt-4">
         <div ref={canvasRef} className={layoutStyles[selectedLayout] || "p-4 border border-gray-400"}>
           {photos.map((photo, index) => (
@@ -77,8 +64,8 @@ function EditPhoto() {
           ))}
           <div
             ref={captionRef}
-            className="text-center w-full text-black font-bold mt-4 bg-white p-2 border-t border-gray-400"
-            style={{ fontSize: `${fontSize}px` }}
+            className="text-center w-full font-bold mt-4 bg-white p-2 border-t border-gray-400"
+            style={{ fontSize: `${fontSize}px`, fontFamily: fontFamily, color: fontColor }}
           >
             {caption}
           </div>
@@ -102,6 +89,23 @@ function EditPhoto() {
           onChange={(e) => setFontSize(e.target.value)}
           className="p-2 border rounded"
         />
+        <select
+          value={fontFamily}
+          onChange={(e) => setFontFamily(e.target.value)}
+          className="p-2 border rounded"
+        >
+          <option value="Arial">Arial</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Verdana">Verdana</option>
+        </select>
+        <input
+          type="color"
+          value={fontColor}
+          onChange={(e) => setFontColor(e.target.value)}
+          className="p-2 border rounded"
+        />
       </div>
 
       {/* Buttons */}
@@ -112,23 +116,6 @@ function EditPhoto() {
         >
           Simpan 
         </button>
-
-        <button
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all"
-          onClick={sharePhoto}
-          disabled={!isSaved}
-        >
-          Share 
-        </button>
-
-        <a
-          href="https://saweria.co/otkhodylinz"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-6 py-2 bg-yellow-500 text-white rounded-lg shadow-md hover:bg-yellow-600 transition-all"
-        >
-          dukung pengembangan
-        </a>
       </div>
     </div>
   );
