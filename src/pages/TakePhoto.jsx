@@ -181,13 +181,14 @@ function TakePhoto({ selectedLayout }) {
       </div>
 
       {/* Tombol Lanjut */}
-      <button
-        className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all disabled:opacity-50"
-        onClick={() => navigate("/edit", { state: { photos, selectedLayout } })}
-        disabled={photos.includes(null)}
-      >
-        Lanjut ✏️
-      </button>
+<button
+  className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all disabled:opacity-50"
+  onClick={() => navigate("/edit", { state: { photos, selectedLayout, filter } })} // Kirim filter ke EditPhoto
+  disabled={photos.includes(null)}
+>
+  Lanjut ✏️
+</button>
+
     </div>
   );
 }
