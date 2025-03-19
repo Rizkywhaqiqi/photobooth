@@ -4,7 +4,7 @@ import html2canvas from "html2canvas";
 
 function EditPhoto() {
   const location = useLocation();
-  const { photos, selectedLayout, filter } = location.state || {};
+  const { photos, selectedLayout } = location.state || {};
   const canvasRef = useRef(null);
   const imgRefs = useRef([]);
   const captionRef = useRef(null);
@@ -13,6 +13,7 @@ function EditPhoto() {
   const [fontSize, setFontSize] = useState(20);
   const [fontFamily, setFontFamily] = useState("Arial");
   const [fontColor, setFontColor] = useState("#000000");
+  const [filter, setFilter] = useState("none");
   const [isSaved, setIsSaved] = useState(false);
 
   if (!photos || !selectedLayout) {
@@ -26,7 +27,7 @@ function EditPhoto() {
 
   useEffect(() => {
     imgRefs.current.forEach((img) => {
-      if (img) img.style.filter = filter; // Terapkan filter ke gambar
+      if (img) img.style.filter = filter;
     });
   }, [filter]);
 
@@ -42,26 +43,49 @@ function EditPhoto() {
   };
 
   const savePhoto = async () => {
-    const canvas = await html2canvas(canvasRef.current, {
-      useCORS: true,
-      scale: 3, // Meningkatkan kualitas hasil
-      backgroundColor: null, // Menjaga transparansi latar belakang
-    });
+    const canvas = await html2canvas(canvasRef.current, { useCORS: true, scale: 2 });
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "foto-keren.png";
+    link.click();
+    setIsSaved(true);
+  };
 
-    // Konversi ke Blob agar lebih kompatibel di semua perangkat
-    canvas.toBlob((blob) => {
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "foto-keren.png";
-      link.click();
-      setIsSaved(true);
-    }, "image/png");
+  const shareToFacebook = async () => {
+    const canvas = await html2canvas(canvasRef.current, { useCORS: true, scale: 2 });
+    const imageUrl = canvas.toDataURL("image/png");
+
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(imageUrl)}`;
+    window.open(facebookUrl, "_blank");
+  };
+
+  const shareToInstagram = async () => {
+    const canvas = await html2canvas(canvasRef.current, { useCORS: true, scale: 2 });
+    const imageUrl = canvas.toDataURL("image/png");
+
+    try {
+      await navigator.clipboard.writeText(imageUrl);
+      alert("Link foto telah disalin! Buka Instagram dan tempel di post.");
+    } catch (error) {
+      alert("Gagal menyalin link, coba simpan lalu unggah manual ke Instagram.");
+    }
   };
 
   return (
     <div className="text-center p-6">
       <h1 className="text-2xl font-semibold">Edit Foto</h1>
       <p className="text-gray-600 mt-2">Kasik tulesan kalau nda pun nda pape! Maok ati yaklaa~</p>
+
+      {/* Pilihan Filter */}
+      <div className="mt-4 flex justify-center gap-4">
+        <select className="p-2 border rounded" value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <option value="none">Tanpa Efek</option>
+          <option value="grayscale(100%)">Hitam Putih</option>
+          <option value="sepia(100%)">Jadul</option>
+          <option value="contrast(200%)">Kontras Tinggi</option>
+          <option value="blur(3px)">Blur</option>
+        </select>
+      </div>
 
       {/* Frame Foto */}
       <div className="flex flex-col items-center mt-4">
@@ -130,6 +154,20 @@ function EditPhoto() {
           onClick={savePhoto}
         >
           Simpan 📥
+        </button>
+
+        <button
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all"
+          onClick={shareToFacebook}
+        >
+          Share ke Facebook
+        </button>
+
+        <button
+          className="px-6 py-2 bg-pink-600 text-white rounded-lg shadow-md hover:bg-pink-700 transition-all"
+          onClick={shareToInstagram}
+        >
+          Share ke Instagram
         </button>
 
         <a
