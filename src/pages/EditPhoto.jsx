@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import html2canvas from "html2canvas";
 
 function EditPhoto() {
   const location = useLocation();
-  const { photos, selectedLayout } = location.state || {};
+  const { photos, selectedLayout, filter } = location.state || {}; // Ambil filter dari TakePhoto
   const canvasRef = useRef(null);
   const imgRefs = useRef([]);
   const captionRef = useRef(null);
@@ -13,7 +12,6 @@ function EditPhoto() {
   const [fontSize, setFontSize] = useState(20);
   const [fontFamily, setFontFamily] = useState("Arial");
   const [fontColor, setFontColor] = useState("#000000");
-  const [filter, setFilter] = useState("none");
   const [isSaved, setIsSaved] = useState(false);
 
   if (!photos || !selectedLayout) {
@@ -27,7 +25,7 @@ function EditPhoto() {
 
   useEffect(() => {
     imgRefs.current.forEach((img) => {
-      if (img) img.style.filter = filter;
+      if (img) img.style.filter = filter; // Terapkan filter dari TakePhoto
     });
   }, [filter]);
 
@@ -43,49 +41,68 @@ function EditPhoto() {
   };
 
   const savePhoto = async () => {
-    const canvas = await html2canvas(canvasRef.current, { useCORS: true, scale: 2 });
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "foto-keren.png";
-    link.click();
-    setIsSaved(true);
-  };
+    const container = canvasRef.current;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-  const shareToFacebook = async () => {
-    const canvas = await html2canvas(canvasRef.current, { useCORS: true, scale: 2 });
-    const imageUrl = canvas.toDataURL("image/png");
+    // Set ukuran canvas sesuai dengan preview
+    const scale = window.devicePixelRatio || 2;
+    canvas.width = container.clientWidth * scale;
+    canvas.height = container.clientHeight * scale;
+    ctx.scale(scale, scale);
 
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(imageUrl)}`;
-    window.open(facebookUrl, "_blank");
-  };
+    // Background putih agar tidak transparan
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
 
-  const shareToInstagram = async () => {
-    const canvas = await html2canvas(canvasRef.current, { useCORS: true, scale: 2 });
-    const imageUrl = canvas.toDataURL("image/png");
+    let yOffset = 20; // ✅ Tambahkan padding atas agar bingkai tidak terpotong
+    const gap = 10; // Jarak antar foto
 
-    try {
-      await navigator.clipboard.writeText(imageUrl);
-      alert("Link foto telah disalin! Buka Instagram dan tempel di post.");
-    } catch (error) {
-      alert("Gagal menyalin link, coba simpan lalu unggah manual ke Instagram.");
+    for (let i = 0; i < imgRefs.current.length; i++) {
+      const img = imgRefs.current[i];
+      if (img) {
+        await new Promise((resolve) => {
+          const imgElement = new Image();
+          imgElement.src = img.src;
+          imgElement.crossOrigin = "anonymous";
+          imgElement.style.filter = filter;
+
+          imgElement.onload = () => {
+            requestAnimationFrame(() => {
+              ctx.filter = filter; // Terapkan filter langsung ke canvas
+              const imgWidth = canvas.width / scale - 40;
+              const imgHeight = imgElement.height * (imgWidth / imgElement.width);
+              ctx.drawImage(imgElement, 20, yOffset, imgWidth, imgHeight);
+              yOffset += imgHeight + gap;
+              resolve();
+            });
+          };
+        });
+      }
     }
-  };
+
+    // Tambahkan teks caption dengan margin tambahan di bawah
+    ctx.filter = "none"; // Pastikan teks tidak kena filter
+    ctx.fillStyle = fontColor;
+    ctx.font = `${fontSize}px ${fontFamily}`;
+    ctx.textAlign = "center";
+    ctx.fillText(caption, canvas.width / 1.5 , yOffset + 40); // ✅ Tambahkan padding bawah agar tidak terlalu dekat
+
+    // Simpan gambar sebagai PNG
+    canvas.toBlob((blob) => {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "foto-keren.png";
+      link.click();
+      setIsSaved(true);
+    }, "image/png");
+};
+
 
   return (
     <div className="text-center p-6">
       <h1 className="text-2xl font-semibold">Edit Foto</h1>
       <p className="text-gray-600 mt-2">Kasik tulesan kalau nda pun nda pape! Maok ati yaklaa~</p>
-
-      {/* Pilihan Filter */}
-      <div className="mt-4 flex justify-center gap-4">
-        <select className="p-2 border rounded" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="none">Tanpa Efek</option>
-          <option value="grayscale(100%)">Hitam Putih</option>
-          <option value="sepia(100%)">Jadul</option>
-          <option value="contrast(200%)">Kontras Tinggi</option>
-          <option value="blur(3px)">Blur</option>
-        </select>
-      </div>
 
       {/* Frame Foto */}
       <div className="flex flex-col items-center mt-4">
@@ -113,71 +130,23 @@ function EditPhoto() {
 
       {/* Controls */}
       <div className="mt-4 flex flex-wrap gap-4 justify-center">
-        <input
-          type="text"
-          value={caption}
-          onChange={(e) => setCaption(e.target.value)}
-          className="p-2 border rounded"
-          placeholder="Tulis caption di sini..."
-        />
-        <input
-          type="range"
-          min="12"
-          max="32"
-          value={fontSize}
-          onChange={(e) => setFontSize(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <select
-          value={fontFamily}
-          onChange={(e) => setFontFamily(e.target.value)}
-          className="p-2 border rounded"
-        >
+        <input type="text" value={caption} onChange={(e) => setCaption(e.target.value)} className="p-2 border rounded" placeholder="Tulis caption di sini..." />
+        <input type="range" min="12" max="32" value={fontSize} onChange={(e) => setFontSize(e.target.value)} className="p-2 border rounded" />
+        <select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className="p-2 border rounded">
           <option value="Arial">Arial</option>
           <option value="Courier New">Courier New</option>
           <option value="Georgia">Georgia</option>
           <option value="Times New Roman">Times New Roman</option>
           <option value="Verdana">Verdana</option>
         </select>
-        <input
-          type="color"
-          value={fontColor}
-          onChange={(e) => setFontColor(e.target.value)}
-          className="p-2 border rounded"
-        />
+        <input type="color" value={fontColor} onChange={(e) => setFontColor(e.target.value)} className="p-2 border rounded" />
       </div>
 
       {/* Buttons */}
       <div className="mt-6 flex flex-wrap justify-center gap-4">
-        <button
-          className="px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all"
-          onClick={savePhoto}
-        >
+        <button className="px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all" onClick={savePhoto}>
           Simpan 📥
         </button>
-
-        <button
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all"
-          onClick={shareToFacebook}
-        >
-          Share ke Facebook
-        </button>
-
-        <button
-          className="px-6 py-2 bg-pink-600 text-white rounded-lg shadow-md hover:bg-pink-700 transition-all"
-          onClick={shareToInstagram}
-        >
-          Share ke Instagram
-        </button>
-
-        <a
-          href="https://saweria.co/otkhodylinz"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-6 py-2 bg-yellow-500 text-white rounded-lg shadow-md hover:bg-yellow-600 transition-all"
-        >
-          Donate 💰
-        </a>
       </div>
     </div>
   );
