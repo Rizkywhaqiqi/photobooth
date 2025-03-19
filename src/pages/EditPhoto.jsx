@@ -26,17 +26,36 @@ function EditPhoto() {
 
   useEffect(() => {
     imgRefs.current.forEach((img) => {
-      if (img) img.style.filter = filter;
+      if (img) img.style.filter = filter; // Terapkan filter ke gambar
     });
   }, [filter]);
 
+  const layoutStyles = {
+    "4-strip": "grid grid-rows-4 w-40 h-96 bg-white p-4 border border-gray-400",
+    "3-strip": "grid grid-rows-3 w-40 h-72 bg-white p-4 border border-gray-400",
+    "3-strip-landscape": "grid grid-cols-3 w-72 h-40 bg-white p-4 border border-gray-400",
+    "square": "w-48 h-48 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "wide": "w-72 h-56 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "mini": "w-32 h-40 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "2r": "w-48 h-64 bg-white p-4 border border-gray-400 flex flex-col items-center",
+    "7x10": "w-56 h-80 bg-white p-4 border border-gray-400 flex flex-col items-center",
+  };
+
   const savePhoto = async () => {
-    const canvas = await html2canvas(canvasRef.current, { useCORS: true, scale: 3 });
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "foto-keren.png";
-    link.click();
-    setIsSaved(true);
+    const canvas = await html2canvas(canvasRef.current, {
+      useCORS: true,
+      scale: 3, // Meningkatkan kualitas hasil
+      backgroundColor: null, // Menjaga transparansi latar belakang
+    });
+
+    // Konversi ke Blob agar lebih kompatibel di semua perangkat
+    canvas.toBlob((blob) => {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "foto-keren.png";
+      link.click();
+      setIsSaved(true);
+    }, "image/png");
   };
 
   return (
@@ -46,16 +65,17 @@ function EditPhoto() {
 
       {/* Frame Foto */}
       <div className="flex flex-col items-center mt-4">
-        <div ref={canvasRef} className="p-4 border border-gray-400 bg-white">
+        <div ref={canvasRef} className={layoutStyles[selectedLayout] || "p-4 border border-gray-400"}>
           {photos.map((photo, index) => (
-            <img
-              key={index}
-              ref={(el) => (imgRefs.current[index] = el)}
-              src={photo}
-              alt="Hasil Jepretan"
-              className="w-full object-cover"
-              style={{ filter: filter }}
-            />
+            <div key={index} className="w-full h-full bg-white p-1">
+              <img
+                ref={(el) => (imgRefs.current[index] = el)}
+                src={photo}
+                alt="Hasil Jepretan"
+                className="w-full h-full object-cover"
+                style={{ filter: filter }}
+              />
+            </div>
           ))}
           <div
             ref={captionRef}
@@ -84,6 +104,23 @@ function EditPhoto() {
           onChange={(e) => setFontSize(e.target.value)}
           className="p-2 border rounded"
         />
+        <select
+          value={fontFamily}
+          onChange={(e) => setFontFamily(e.target.value)}
+          className="p-2 border rounded"
+        >
+          <option value="Arial">Arial</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Verdana">Verdana</option>
+        </select>
+        <input
+          type="color"
+          value={fontColor}
+          onChange={(e) => setFontColor(e.target.value)}
+          className="p-2 border rounded"
+        />
       </div>
 
       {/* Buttons */}
@@ -94,6 +131,15 @@ function EditPhoto() {
         >
           Simpan 📥
         </button>
+
+        <a
+          href="https://saweria.co/otkhodylinz"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-6 py-2 bg-yellow-500 text-white rounded-lg shadow-md hover:bg-yellow-600 transition-all"
+        >
+          Donate 💰
+        </a>
       </div>
     </div>
   );
