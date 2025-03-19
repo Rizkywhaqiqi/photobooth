@@ -90,7 +90,11 @@ function TakePhoto({ selectedLayout }) {
 
       {/* Pilihan Filter */}
       <div className="mt-4 flex justify-center gap-4">
-        <select className="p-2 border rounded" value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <select
+          className="p-2 border rounded"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
           <option value="none">Tanpa Efek</option>
           <option value="grayscale(100%)">Hitam Putih</option>
           <option value="sepia(100%)">Jadul</option>
@@ -108,6 +112,7 @@ function TakePhoto({ selectedLayout }) {
             screenshotFormat="image/png"
             className="w-64 h-80 object-cover"
             videoConstraints={{ facingMode: isFrontCamera ? "user" : "environment" }}
+            style={{ filter: filter }} // Terapkan filter di webcam preview
           />
           {countdown !== null && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-6xl font-bold animate-pulse">
@@ -126,8 +131,20 @@ function TakePhoto({ selectedLayout }) {
             }}
           >
             {photos.map((photo, index) => (
-              <div key={index} className="w-20 h-20 md:w-24 md:h-24 border border-gray-300 flex items-center justify-center bg-white shadow-sm">
-                {photo ? <img src={photo} alt={`Captured ${index}`} className="w-full h-full object-cover" style={{ filter: filter }} /> : "📷"}
+              <div
+                key={index}
+                className="w-20 h-20 md:w-24 md:h-24 border border-gray-300 flex items-center justify-center bg-white shadow-sm"
+              >
+                {photo ? (
+                  <img
+                    src={photo}
+                    alt={`Captured ${index}`}
+                    className="w-full h-full object-cover"
+                    style={{ filter: filter }} // Terapkan filter di preview
+                  />
+                ) : (
+                  "📷"
+                )}
               </div>
             ))}
           </div>
@@ -135,21 +152,21 @@ function TakePhoto({ selectedLayout }) {
       </div>
 
       <div className="mt-6 flex flex-wrap justify-center gap-4">
-        <button 
+        <button
           className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all disabled:opacity-50"
-          onClick={capture} 
+          onClick={capture}
           disabled={currentSlot >= photos.length || autoCapture}
         >
           Ambil Sekali 📸
         </button>
-        <button 
+        <button
           className="px-6 py-2 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition-all"
           onClick={() => setAutoCapture(true)}
           disabled={currentSlot >= photos.length}
         >
           Auto Capture ⏳
         </button>
-        <button 
+        <button
           className="px-6 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all"
           onClick={retake}
         >
@@ -164,7 +181,7 @@ function TakePhoto({ selectedLayout }) {
       </div>
 
       {/* Tombol Lanjut */}
-      <button 
+      <button
         className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all disabled:opacity-50"
         onClick={() => navigate("/edit", { state: { photos, selectedLayout } })}
         disabled={photos.includes(null)}
