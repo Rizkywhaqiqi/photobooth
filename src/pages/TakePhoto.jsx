@@ -84,17 +84,6 @@ function TakePhoto({ selectedLayout }) {
     <div className="text-center p-6">
       <h1 className="text-2xl font-semibold">ambek gambar</h1>
       <p className="text-gray-600 mt-2">Siap-siap begaye pek </p>
-      {/* Filter Options */}
-      <div className="mt-6 flex justify-center gap-4">
-        <select className="p-2 border rounded" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="none">tanpe epek</option>
-          <option value="grayscale(100%)">Hitam Puteh</option>
-          <option value="sepia(100%)">jadol</option>
-          <option value="contrast(200%)">terang kate org tek</option>
-          <option value="blur(3px)">Buramm</option>
-        </select>
-      </div>
-      
 
       <div className="flex flex-col md:flex-row justify-center items-center mt-6 gap-6">
         {/* Kamera */}
@@ -162,7 +151,16 @@ function TakePhoto({ selectedLayout }) {
         </button>
       </div>
 
-
+      {/* Filter Options */}
+      <div className="mt-6 flex justify-center gap-4">
+        <select className="p-2 border rounded" value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <option value="none">tanpe epek</option>
+          <option value="grayscale(100%)">Hitam Puteh</option>
+          <option value="sepia(100%)">jadol</option>
+          <option value="contrast(200%)">terang kate org tek</option>
+          <option value="blur(3px)">Buramm</option>
+        </select>
+      </div>
     </div>
   );
 }
