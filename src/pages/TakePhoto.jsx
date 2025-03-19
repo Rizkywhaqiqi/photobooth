@@ -23,7 +23,7 @@ function TakePhoto({ selectedLayout }) {
   useEffect(() => {
     let timer;
     if (autoCapture && currentSlot < photos.length) {
-      setCountdown(5);
+      setCountdown(3);
       timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev === 1) {
@@ -53,6 +53,7 @@ function TakePhoto({ selectedLayout }) {
 
       if (currentSlot + 1 >= photos.length) {
         setAutoCapture(false);
+        setCountdown(null);
       }
     }
   };
@@ -61,6 +62,7 @@ function TakePhoto({ selectedLayout }) {
     setPhotos(Array(selectedLayout.rows * selectedLayout.cols).fill(null));
     setCurrentSlot(0);
     setAutoCapture(false);
+    setCountdown(null);
   };
 
   const applyFilter = (imageSrc) => {
@@ -69,6 +71,7 @@ function TakePhoto({ selectedLayout }) {
       const ctx = canvas.getContext("2d");
       const img = new Image();
       img.src = imageSrc;
+      img.crossOrigin = "anonymous";
 
       img.onload = () => {
         canvas.width = img.width;
@@ -82,8 +85,19 @@ function TakePhoto({ selectedLayout }) {
 
   return (
     <div className="text-center p-6">
-      <h1 className="text-2xl font-semibold">ambek gambar</h1>
-      <p className="text-gray-600 mt-2">Siap-siap begaye pek </p>
+      <h1 className="text-2xl font-semibold">Ambek Gambar</h1>
+      <p className="text-gray-600 mt-2">Siap-siap begaye pek 📸</p>
+
+      {/* Pilihan Filter */}
+      <div className="mt-4 flex justify-center gap-4">
+        <select className="p-2 border rounded" value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <option value="none">Tanpe Epek</option>
+          <option value="grayscale(100%)">Hitam Puteh</option>
+          <option value="sepia(100%)">Jadol</option>
+          <option value="contrast(200%)">Terang Kate Org Tek</option>
+          <option value="blur(3px)">Burammm</option>
+        </select>
+      </div>
 
       <div className="flex flex-col md:flex-row justify-center items-center mt-6 gap-6">
         {/* Kamera */}
@@ -97,7 +111,7 @@ function TakePhoto({ selectedLayout }) {
             style={{ filter: filter }}
           />
           {countdown !== null && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-6xl font-bold">
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-6xl font-bold animate-pulse">
               {countdown}
             </div>
           )}
@@ -116,51 +130,43 @@ function TakePhoto({ selectedLayout }) {
       </div>
 
       <div className="mt-6 flex flex-wrap justify-center gap-4">
+        {/* Tombol Urutan Sesuai */}
         <button 
           className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all disabled:opacity-50"
           onClick={capture} 
           disabled={currentSlot >= photos.length || autoCapture}
         >
-          tekan sorang
-        </button>
-        <button 
-          className="px-6 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all"
-          onClick={retake}
-        >
-          Ulang agek 
+          Tekan Sorang 📸
         </button>
         <button 
           className="px-6 py-2 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition-all"
           onClick={() => setAutoCapture(true)}
           disabled={currentSlot >= photos.length}
         >
-          kenak potokan *timer*
+          Kenak Potokan ⏳
         </button>
         <button 
-          className="px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all disabled:opacity-50"
-          onClick={() => navigate("/edit", { state: { photos, selectedLayout } })}
-          disabled={photos.includes(null)}
+          className="px-6 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all"
+          onClick={retake}
         >
-          lanjut ✏️
+          Ulang Agek 🔄
         </button>
         <button
           className="px-6 py-2 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700 transition-all"
           onClick={() => setIsFrontCamera(!isFrontCamera)}
         >
-          kamera depan ke belakang ni 🔄
+          Kamera Depan ke Belakang 🔄
         </button>
       </div>
 
-      {/* Filter Options */}
-      <div className="mt-6 flex justify-center gap-4">
-        <select className="p-2 border rounded" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="none">tanpe epek</option>
-          <option value="grayscale(100%)">Hitam Puteh</option>
-          <option value="sepia(100%)">jadol</option>
-          <option value="contrast(200%)">terang kate org tek</option>
-          <option value="blur(3px)">Buramm</option>
-        </select>
-      </div>
+      {/* Tombol Lanjut */}
+      <button 
+        className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all disabled:opacity-50"
+        onClick={() => navigate("/edit", { state: { photos, selectedLayout } })}
+        disabled={photos.includes(null)}
+      >
+        Lanjut ✏️
+      </button>
     </div>
   );
 }
